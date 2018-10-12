@@ -28,8 +28,6 @@ import android.os.Environment.getExternalStorageDirectory
 import android.util.Log
 import java.io.*
 
-
-
 class MainActivity : AppCompatActivity() {
 
     private var cText = ""
@@ -52,57 +50,10 @@ class MainActivity : AppCompatActivity() {
             //var saveFile = File(temp, "savedColors")
             //Log.i("ColorPicker", saveFile.toString())
 
-            val rSeekBar = findViewById<SeekBar>(R.id.redSeekBar) as SeekBar
-            val rSeekBarValue = findViewById<TextView>(R.id.rVal) as TextView
-
-            rSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int,
-                                               fromUser: Boolean) {
-
-                    rSeekBarValue.text = progress.toString()
-                    rValue = progress
-                    colorWindow.setBackgroundColor(Color.rgb(rValue, gValue, bValue))
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
-            })
-
-            val gSeekBar = findViewById<SeekBar>(R.id.greenSeekBar) as SeekBar
-            val gSeekBarValue = findViewById<TextView>(R.id.gVal) as TextView
-
-            gSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int,
-                                               fromUser: Boolean) {
-
-                    gSeekBarValue.text = progress.toString()
-                    gValue = progress
-                    colorWindow.setBackgroundColor(Color.rgb(rValue, gValue, bValue))
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
-            })
-
-            val bSeekBar = findViewById<SeekBar>(R.id.blueSeekBar) as SeekBar
-            val bSeekBarValue = findViewById<TextView>(R.id.bVal) as TextView
-
-            bSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int,
-                                               fromUser: Boolean) {
-
-                    bSeekBarValue.text = progress.toString()
-                    bValue = progress
-                    colorWindow.setBackgroundColor(Color.rgb(rValue, gValue, bValue))
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
-            })
-
+            setUpSeekBar(redSeekBar, rVal)
+            setUpSeekBar(greenSeekBar, gVal)
+            setUpSeekBar(blueSeekBar, bVal)
+            
             colorWindow.setBackgroundColor(Color.rgb(rValue, gValue, bValue))
 
             saveButtonClick()
@@ -157,6 +108,36 @@ class MainActivity : AppCompatActivity() {
         else {
             Log.i("ColorPicker", "List is empty")
         }
+    }
+
+    private fun setUpSeekBar(seekBar: SeekBar, textView: TextView) {
+
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int,
+                                           fromUser: Boolean) {
+
+                textView.text = progress.toString()
+
+                if(seekBar == redSeekBar) {
+                    colorWindow.setBackgroundColor(Color.rgb(progress, gValue, bValue))
+                    rValue = progress
+                }
+
+                if(seekBar == greenSeekBar) {
+                    colorWindow.setBackgroundColor(Color.rgb(rValue, progress, bValue))
+                    gValue = progress
+                }
+
+                if(seekBar == blueSeekBar) {
+                    colorWindow.setBackgroundColor(Color.rgb(rValue, gValue, progress))
+                    bValue = progress
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar) {}
+        })
     }
 
      private fun saveButtonClick() {
@@ -246,32 +227,34 @@ class MainActivity : AppCompatActivity() {
 
         var toReturn: ArrayList<String> = ArrayList()
 
-         File(savedColors.toString()).inputStream().use {
+         if(savedColors.exists()) {
+             File(savedColors.toString()).inputStream().use {
 
-             Log.i("ColorPicker", "File Exists ")
-             try {
-                 val file = InputStreamReader(openFileInput("savedColors"))
-                 val br = BufferedReader(file)
-                 Log.i("ColorPicker", "File Located")
-                 var line = br.readLine()
+                 Log.i("ColorPicker", "File Exists ")
+                 try {
+                     val file = InputStreamReader(openFileInput("savedColors"))
+                     val br = BufferedReader(file)
+                     Log.i("ColorPicker", "File Located")
+                     var line = br.readLine()
 
-                 if (line == null)
-                     Log.i("ColorPicker", "File is Empty")
+                     if (line == null)
+                         Log.i("ColorPicker", "File is Empty")
 
-                 while (line != null) {
+                     while (line != null) {
 
-                     toReturn.add(line)
-                     Log.i("ColorPicker", "line read and added $line to list")
-                     line = br.readLine()
+                         toReturn.add(line)
+                         Log.i("ColorPicker", "line read and added $line to list")
+                         line = br.readLine()
+                     }
+
+                     file.close()
+                     br.close()
+
+                 } catch (e: FileNotFoundException) {
+                     Log.e("InternalStorage", "File not found Exception")
+                 } catch (e: IOException) {
+                     Log.e("InternalStorage", "IO Exception")
                  }
-
-                 file.close()
-                 br.close()
-
-             } catch (e: FileNotFoundException) {
-                 Log.e("InternalStorage", "File not found Exception")
-             } catch (e: IOException) {
-                 Log.e("InternalStorage", "IO Exception")
              }
          }
          return toReturn
